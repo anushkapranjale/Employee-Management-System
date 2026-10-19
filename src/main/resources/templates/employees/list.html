@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head><meta charset="UTF-8"><title>Employees</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<header>
+  <strong>Employee Management System</strong>
+  <span>
+    <span sec:authentication="name"></span>
+    (<span sec:authentication="principal.authorities"></span>)
+    <form th:action="@{/logout}" method="post"><button class="btn gray">Logout</button></form>
+  </span>
+</header>
+<div class="wrap"><div class="card">
+  <div class="msg" th:if="${message}" th:text="${message}"></div>
+  <div class="bar">
+    <form th:action="@{/employees}" method="get">
+      <input name="keyword" th:value="${keyword}" placeholder="Search name, department, designation" style="width:280px;display:inline-block">
+      <button class="btn" type="submit">Search</button>
+    </form>
+    <a class="btn" th:href="@{/employees/new}" sec:authorize="hasAnyRole('ADMIN','HR')">+ Add Employee</a>
+  </div>
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Designation</th><th>Salary</th><th>Joined</th>
+      <th sec:authorize="hasAnyRole('ADMIN','HR')">Actions</th></tr></thead>
+    <tbody>
+      <tr th:each="e : ${employees}">
+        <td th:text="${e.id}"></td>
+        <td th:text="${e.firstName + ' ' + e.lastName}"></td>
+        <td th:text="${e.email}"></td>
+        <td th:text="${e.department}"></td>
+        <td th:text="${e.designation}"></td>
+        <td th:text="${#numbers.formatDecimal(e.salary,0,'COMMA',2,'POINT')}"></td>
+        <td th:text="${e.dateOfJoining}"></td>
+        <td sec:authorize="hasAnyRole('ADMIN','HR')">
+          <a class="btn warn" th:href="@{/employees/edit/{id}(id=${e.id})}">Edit</a>
+          <form th:action="@{/employees/delete/{id}(id=${e.id})}" method="post" style="display:inline"
+                sec:authorize="hasRole('ADMIN')" onsubmit="return confirm('Delete this employee?')">
+            <button class="btn danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(employees)}"><td colspan="8">No employees found.</td></tr>
+    </tbody>
+  </table>
+</div></div>
+</body></html>

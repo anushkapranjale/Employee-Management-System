@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title th:text="${title}">Employee</title><link rel="stylesheet" th:href="@{/css/style.css}"></head>
+<body>
+<header><strong>Employee Management System</strong></header>
+<div class="wrap"><div class="card" style="max-width:560px;margin:auto">
+  <h2 th:text="${title}"></h2>
+  <form th:action="@{/employees/save}" th:object="${employee}" method="post">
+    <input type="hidden" th:field="*{id}">
+    <label>First name <input th:field="*{firstName}"></label>
+    <div class="err" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+    <label>Last name <input th:field="*{lastName}"></label>
+    <div class="err" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+    <label>Email <input th:field="*{email}"></label>
+    <div class="err" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+    <label>Department <input th:field="*{department}"></label>
+    <div class="err" th:if="${#fields.hasErrors('department')}" th:errors="*{department}"></div>
+    <label>Designation <input th:field="*{designation}"></label>
+    <div class="err" th:if="${#fields.hasErrors('designation')}" th:errors="*{designation}"></div>
+    <label>Salary <input type="number" step="0.01" th:field="*{salary}"></label>
+    <div class="err" th:if="${#fields.hasErrors('salary')}" th:errors="*{salary}"></div>
+    <label>Date of joining <input type="date" th:field="*{dateOfJoining}"></label>
+    <div class="err" th:if="${#fields.hasErrors('dateOfJoining')}" th:errors="*{dateOfJoining}"></div>
+    <br>
+    <button class="btn" type="submit">Save</button>
+    <a class="btn gray" th:href="@{/employees}">Cancel</a>
+  </form>
+</div></div>
+</body></html>

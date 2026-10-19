@@ -1,28 +1,77 @@
 
 package com.ems.employee_management_system.config;
-
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+            throws Exception {
+
         http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/api/departments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/departments/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/employees/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/employees/**").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/api/employees/**").permitAll()
-                        .anyRequest().authenticated()
+
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
+                )
+
+
+                        .authorizeHttpRequests(auth -> auth
+                                .requestMatchers("/api/auth/**").permitAll()
+
+                                .requestMatchers("/api/departments/**")
+                                .hasAnyRole("ADMIN", "HR")
+
+                                // Only Admin can deactivate an employee
+                                .requestMatchers(HttpMethod.PUT, "/api/employees/*/deactivate")
+                                .hasRole("ADMIN")
+
+                                // Admin and HR can access other employee endpoints
+                                .requestMatchers("/api/employees/**")
+                                .hasAnyRole("ADMIN", "HR")
+
+                                .anyRequest().authenticated()
+                        )
+
+
+
+                .addFilterBefore(
+                        jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();
     }
 }
+
